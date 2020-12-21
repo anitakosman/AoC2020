@@ -87,7 +87,6 @@ private fun checkRotations(input: List<String>): Boolean {
         image = image.turnImg()
         val seaMonsters = countSeaMonsters(image)
         if (seaMonsters > 0) {
-            println(image.joinToString("\n"))
             println(image.sumBy { line -> line.count { it == '#' } } - seaMonsters * 15)
             return true
         }
@@ -95,17 +94,7 @@ private fun checkRotations(input: List<String>): Boolean {
     return false
 }
 
-fun countSeaMonsters(image: List<String>): Int {
-    val matches = seaMonsterRegex.findAll(image.joinToString("\n")).toList()
-    val filtered = matches.filter { match ->
-        match.groupValues.drop(1).distinctBy { it.length }.count() == 1
-    }.toList()
-    filtered.forEach {
-        val i = it.groups[0]!!.range.first
-        val i1 = image[0].length + 1
-        println("(${i / i1}, ${i % i1})")
-    }
-    return filtered.count()
-}
+fun countSeaMonsters(image: List<String>) =
+    (0..image.size - 20).map { seaMonsterRegex(it).findAll(image.joinToString("\n")).toList().count() }.sum()
 
-val seaMonsterRegex = Regex("(?=(.*).{19}#.*\\n(.*)#....##....##....###.*\\n(.*).#..#..#..#..#..#)")
+private fun seaMonsterRegex(n: Int) = Regex("\\n.{$n}.{18}#.*\\n.{$n}#....##....##....###.*\\n.{$n}.#..#..#..#..#..#")
