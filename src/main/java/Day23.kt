@@ -5,68 +5,44 @@ fun main() {
 }
 
 private fun part1(input: List<Int>) {
-    var cup = cups(input, 100)
+    val circle = cups(input, 100)
+    var cup = circle[1]
     repeat(8){
-        print(cup.label)
-        cup = cup.next!!
+        print(cup)
+        cup = circle[cup]!!
     }
     println()
 }
 
 private fun part2(input: List<Int>) {
-    val oneCup = cups(input.plus((10..1000000)), 10000000)
-    println(oneCup.label * oneCup.next!!.label)
+    val circle = cups(input.plus((10..1000000)), 10000000)
+    val cup = circle[1]!!
+    println(cup.toLong() * circle[cup]!!)
 }
 
-private fun cups(input: List<Int>, moves: Int): LinkedCup {
-    val circle = CupCircle(input)
-    repeat(moves) { circle.move(); if (it % 500 == 0) println(it) }
-    while (circle.current.label != 1){
-        circle.next()
-    }
-    return circle.current.next!!
-}
+private fun cups(input: List<Int>, moves: Int): Map<Int, Int> {
+    val circle = input.zipWithNext().toMap().toMutableMap()
+    circle[input.last()] = input.first()
+    val max = input.size
+    var current = input.first()
+    repeat(moves) {
+        val one = circle[current]!!
+        val two = circle[one]!!
+        val three = circle[two]!!
 
-data class LinkedCup (val label: Int, var next: LinkedCup?)
+        val next = circle[three]!!
+        circle[current] = next
 
-class CupCircle(private val max: Int) {
-    lateinit var current: LinkedCup
-    constructor(list: List<Int>) : this(list.maxOrNull()!!) {
-        val last = LinkedCup(list.last(), null)
-        var previous = last
-        list.reversed().drop(1).forEach {
-            val cup = LinkedCup(it, previous)
-            previous = cup
-        }
-        current = previous
-        last.next = current
-    }
-
-    fun next() { current = current.next!! }
-
-    fun move(){
-        //println(current.label  )
-        val one = current.next!!
-        val two = one.next!!
-        val three = two.next!!
-
-        val next = three.next!!
-        three.next = null
-        current.next = next
-
-        val n = current.label
-        var dest = n - 1
-        while (dest <= 0 || dest in listOf(one.label, two.label, three.label)){
+        var dest = current - 1
+        while (dest <= 0 || dest in listOf(one, two, three)){
             if (dest <= 0) dest = max else dest--
         }
 
-        var cup = next
-        while (cup.label != dest)
-            cup = cup.next!!
-        val destNext = cup.next
-        cup.next = one
-        three.next = destNext
+        val destNext = circle[dest]!!
+        circle[dest] = one
+        circle[three] = destNext
 
-        current = current.next!!
+        current = next
     }
+    return circle
 }
